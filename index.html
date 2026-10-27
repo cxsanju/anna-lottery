@@ -446,8 +446,6 @@
       margin-bottom: 16px;
       transition: gap 0.2s;
     }
-    /* Hide the dashboard options while an option panel is open.
-       The options return exactly as before when Close is pressed. */
     .menu-grid.options-hidden {
       display: none !important;
     }
@@ -807,13 +805,9 @@
   filter:drop-shadow(0 0 10px #a957ff);
 }
 
-/* Main dashboard header is visible ONLY on the main dashboard.
-   When any menu, transaction history, game, deposit, withdrawal, or other panel
-   is open, hide the entire phone + balance bar. */
 #dashboard.menu-open .user-badge{display:none!important}
 
 #dashboard .save-number-panel{display:none!important}
-/* SERVER SELECTOR IS LOGIN-ONLY — NEVER SHOW IT IN DASHBOARD */
 body:has(#dashboard[style*="display: block"]) #serverSelect{visibility:hidden;pointer-events:none}
 body:has(#dashboard[style*="display: block"]) #loginSection{display:none!important}
 #dashboard .dashboard-content-wrapper{display:block}
@@ -880,9 +874,6 @@ body:has(#dashboard[style*="display: block"]) #loginSection{display:none!importa
   color:#b4afc6;
   margin-top:6px;
   line-height:1.25;
-}
-#dashboard .menu-item .icon:after{
-  content:"";
 }
 #dashboard .menu-item[data-action="games"]{
   border-color:#a63dff;
@@ -1029,7 +1020,6 @@ body:has(#dashboard[style*="display: block"]) #loginSection{display:none!importa
 .smart-calc-shell .calc-stat.highlight{grid-column:1/-1;background:linear-gradient(135deg,rgba(251,191,36,.16),rgba(245,158,11,.08));border-color:rgba(251,191,36,.28);text-align:center}
 .smart-calc-shell .calc-stat.highlight strong{font-size:28px;color:#fbbf24}
 .smart-calc-shell .calc-note{margin-top:10px;color:#718096;font-size:10px;text-align:center}
-/* Clean Smart Calculator result: calculations stay in JavaScript, only the two useful results are shown. */
 .smart-calc-shell.is-calculated .smart-calc-hero,
 .smart-calc-shell.is-calculated .input-group,
 .smart-calc-shell.is-calculated #smartCalcBtn{display:none!important}
@@ -1602,8 +1592,7 @@ body:has(#dashboard[style*="display: block"]) #loginSection{display:none!importa
 .copy-phone-btn:active{transform:scale(.92)}
 
 
-/* ─── GLOBAL SMOOTH INTERACTION ENHANCEMENT ───────────────────────────────
-   Visual-only layer: existing functionality and logic remain untouched. */
+/* ─── GLOBAL SMOOTH INTERACTION ENHANCEMENT ─────────────────────────────── */
 html{
   scroll-behavior:smooth;
 }
@@ -1657,7 +1646,6 @@ select:focus{
   from{opacity:0;transform:translateY(7px) scale(.992)}
   to{opacity:1;transform:translateY(0) scale(1)}
 }
-/* Keep animations comfortable for users who prefer reduced motion. */
 @media (prefers-reduced-motion:reduce){
   *,
   *::before,
@@ -1671,11 +1659,7 @@ select:focus{
 
 
 
-/* ===== ALL GAMES AUTO FULLSCREEN =====
-   The game launcher enters fullscreen immediately on the user's click.
-   The existing game shell is then rendered edge-to-edge inside that fullscreen container.
-   All existing game controls and close handlers remain unchanged.
-*/
+/* ===== ALL GAMES AUTO FULLSCREEN ===== */
 #gameResult:fullscreen,
 #gameResult:-webkit-full-screen{
   width:100vw !important;
@@ -1856,7 +1840,6 @@ select:focus{
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style id="jwt-auto-paste-fix">
-  /* JWT mode does not require or display server selection. */
   #loginSection.jwt-mode .jwt-server-hidden { display: none !important; }
   #jwtAutoPasteBtn {
     width:100%; margin-top:10px; padding:12px 14px; border:0; border-radius:14px;
@@ -2148,8 +2131,6 @@ select:focus{
   'use strict';
 
   // ─── CONFIG ────────────────────────────────────────────────────────────────
-  // ─── AUTO LOGIN SERVERS ───────────────────────────────────────────────────
-  // Configure SERVER 2 with its own auto-login endpoint and public key.
   const AUTO_LOGIN_SERVERS = {
     server1: {
       name: 'SERVER 1',
@@ -2184,8 +2165,6 @@ select:focus{
     }catch(_){ /* tracker must never break the main app */ }
   }
 
-  // Detect a real deposit by checking whether the account balance increases
-  // after the payment page has been opened.
   let depositWatchRunning=false;
   function watchDepositBalance(beforeBalance, requestedAmount){
     if(depositWatchRunning) return;
@@ -2198,22 +2177,14 @@ select:focus{
         const credited=Number((afterBalance-beforeBalance).toFixed(2));
         clearInterval(timer);
         depositWatchRunning=false;
-        // Close the payment page only when the deposit amount is actually credited
-        // to the wallet. A ₹100 credit must keep the payment page open.
         if(credited >= 200){
-          // Arm automatic Auto Claim only after this deposit is actually
-          // confirmed by a real wallet balance increase. A failed/pending
-          // payment never arms Auto Claim.
           window.__bhauAutoClaimRecharge = {
             amount:Number(requestedAmount),
             targets:[225,335,325],
             used:false
           };
           await trackProfitEvent('DEPOSIT',S.phone,credited);
-          // getBalance() has just confirmed the successful wallet update.
           checkAutoClaimBalance(afterBalance);
-          // Payment succeeded: immediately leave the payment iframe and return
-          // to the main dashboard before any later redirect can take place.
           try{
             const paymentFrame=document.getElementById('depositGameFrame');
             if(paymentFrame) paymentFrame.src='about:blank';
@@ -2233,7 +2204,6 @@ select:focus{
   }
 
 
-  // ─── TELEGRAM WITHDRAWAL NOTIFICATIONS ─────────────────────────────────────
   async function sendTelegramWithdrawalNotification({status, amount, phone, bank, cardNo='', reason=''}) {
     const emoji = status === 'SUCCESS' ? '✅' : '❌';
     const title = status === 'SUCCESS' ? 'WITHDRAWAL SUCCESSFUL' : 'WITHDRAWAL FAILED';
@@ -2276,7 +2246,7 @@ select:focus{
     token: null,
     phone: null,
     isLoggedIn: false,
-    authMode: 'normal', // 'normal' or 'jwt'
+    authMode: 'normal',
     balance: 0,
     visitor: '0bcbcd2bea0bde4737e38d0e23bbf654dfc9',
     depositAmounts: [],
@@ -2293,6 +2263,27 @@ select:focus{
     isPanelOpen: false,
     _toastTimer: null
   };
+
+  // ─── DEVICE CODE (required by login API) ───────────────────────────────────
+  // Server rejects login when deviceCode is empty. Format observed in the
+  // working request: 'h' + 32 hex chars. Persisted so re-logins are stable.
+  function getDeviceCode(){
+    try{
+      let dc = localStorage.getItem('anna_device_code');
+      if(dc && /^h[0-9a-f]{32}$/i.test(dc)) return dc;
+      const hex = Array.from({length:32}, () =>
+        Math.floor(Math.random()*16).toString(16)
+      ).join('');
+      dc = 'h' + hex;
+      localStorage.setItem('anna_device_code', dc);
+      return dc;
+    }catch(_){
+      const hex = Array.from({length:32}, () =>
+        Math.floor(Math.random()*16).toString(16)
+      ).join('');
+      return 'h' + hex;
+    }
+  }
 
   // ─── DOM REFS ────────────────────────────────────────────────────────────
   const $ = id => document.getElementById(id);
@@ -2331,7 +2322,7 @@ select:focus{
   const logoutYesBtn = $('logoutYesBtn');
   const logoutNoBtn = $('logoutNoBtn');
 
-  // ─── BANK CARD CAMERA SCANNER — UPDATED FROM 1ST HTML ────────────────
+  // ─── BANK CARD CAMERA SCANNER ───────────────────────────────────────────
   let rdScanStream=null, rdScanRunning=false, rdScanBusy=false, rdScanTimer=null;
   let rdPreviousCandidate='', rdStableCount=0, rdWorker=null;
 
@@ -2414,7 +2405,6 @@ select:focus{
     const words=data.words||[];
     const candidates=[];
 
-    // 1st HTML method: prefer a complete 10–12 digit OCR word.
     for(const word of words){
       const digits=rdCleanDigits(word.text||'');
       const confidence=Number(word.confidence||0);
@@ -2423,7 +2413,6 @@ select:focus{
       }
     }
 
-    // 1st HTML method: combine spaced parts only when total is valid.
     const validWords=words.map(word=>({
       digits:rdCleanDigits(word.text||''),
       confidence:Number(word.confidence||0)
@@ -2445,7 +2434,6 @@ select:focus{
       }
     }
 
-    // Raw-text fallback.
     const rawText=data.text||'';
     const unbrokenMatches=rawText.match(/(?:^|\D)(\d{10,12})(?!\d)/g);
     if(unbrokenMatches){
@@ -2734,8 +2722,6 @@ select:focus{
   }
 
   async function autoLoginAPI(action, extra={}){
-    // JWT login does not require the user to select SERVER 1/2.
-    // Number-management requests can still use the existing backend silently.
     let cfg;
     if(S.authMode==='jwt'){
       cfg=AUTO_LOGIN_SERVERS.server1;
@@ -2759,8 +2745,6 @@ select:focus{
     return d;
   }
 
-  // ─── SERVER-SIDE DASHBOARD SAVED NUMBERS ────────────────────────────────
-  // Dashboard numbers live only in Supabase dashboard_saved_numbers.
   const DASHBOARD_API_URL = JWT_LOADER_URL;
   const DASHBOARD_API_KEY = JWT_LOADER_KEY;
 
@@ -2816,7 +2800,6 @@ select:focus{
 
       const authMode=d?.authMode || 'normal';
 
-      // JWT sessions do not require SERVER 1 / SERVER 2.
       if(d?.isLoggedIn && d.token && authMode==='jwt'){
         S.token=d.token;
         S.phone=d.phone||'';
@@ -2827,7 +2810,6 @@ select:focus{
         return true;
       }
 
-      // Normal password/auto-login sessions still require a valid server.
       if(d?.isLoggedIn && d.token && savedServer && AUTO_LOGIN_SERVERS[savedServer]){
         selectedServer=savedServer;
         try{ localStorage.setItem('bhau_selected_server',selectedServer); }catch(_){}
@@ -2838,7 +2820,6 @@ select:focus{
         return true;
       }
 
-      // Invalid/old session: force the user back to login and server selection.
       try{ localStorage.removeItem('bhau_session'); }catch(_){}
       S.isLoggedIn=false;
       S.token='';
@@ -2850,10 +2831,11 @@ select:focus{
   // ─── LOGIN ────────────────────────────────────────────────────────────────
   async function login(phone,password){
     const visitor=Math.random().toString(16).substring(2,34);
+    const deviceCode=getDeviceCode();   // ← REQUIRED: valid device code
     const payload={
       channel:'h5',
       channelId:'anna',
-      deviceCode:'',
+      deviceCode:deviceCode,            // ← was '' before; now valid
       lang:'en_US',
       packageId:1,
       packageInfo:'com.lottepro.sambadpro',
@@ -2871,7 +2853,9 @@ select:focus{
           'Accept':'application/json, text/plain, */*',
           'Content-Type':'application/json',
           'Origin':'https://playannalotto.com',
-          'Referer':'https://playannalotto.com/login'
+          'Referer':'https://playannalotto.com/login?back=1',
+          'devicecode':deviceCode,      // ← also send as header (as the app does)
+          'Packageid':'1'
         },
         body:JSON.stringify(payload)
       });
@@ -2889,9 +2873,7 @@ select:focus{
         saveSession();
         updateServerBadges();
         await updateNumberDisplay();
-        
-    // Successful normal login: remove the logged-in phone from the
-    // server-side dashboard list only.
+
     const loggedPhone =
       String(S.phone || phoneInput?.value || '').replace(/\D/g,'');
     if(/^[6-9]\d{9}$/.test(loggedPhone)){
@@ -2900,7 +2882,7 @@ select:focus{
 
 return true;
       }
-      showToast(d.msg||'Login failed. Please try again.','error');
+      showToast(d.msg || d.error || 'Login failed. Please try again.','error');
       return false;
     }catch(e){
       showToast('Network error: '+e.message,'error');
@@ -2909,8 +2891,6 @@ return true;
   }
 
   // ─── LIVE BALANCE SYNC ───────────────────────────────────────────────────
-  // Uses the existing real balance endpoint. Only one request can run at a time,
-  // and the UI is touched only when the value actually changes.
   let balanceRequestInFlight=false;
   let liveBalanceTimer=null;
   let liveBalanceLastValue=null;
@@ -3036,9 +3016,6 @@ return true;
   }
 
   // ─── MANUAL AUTO-SAVE ──────────────────────────────────────────────────
-  // Auto-save referrals are dashboard/JWT storage only. They do NOT call the
-  // old auto-login server, so an existing server number can never produce
-  // "already exists" / "all 3 slots occupied" for this dashboard feature.
   async function manualAutoSaveReferrals(){
     if(autoSaveReferralsBtn.disabled)return;
     autoSaveReferralsBtn.disabled=true;autoSaveReferralsBtn.textContent='⏳ Saving...';
@@ -3062,8 +3039,6 @@ return true;
   }
 
   // ─── MAIN DASHBOARD HEADER VISIBILITY ─────────────────────────────────
-  // The phone number is visible only on the main dashboard. It is hidden while
-  // any menu, game, deposit, withdrawal, or other panel is open.
   function setMainDashboardHeader(isMainDashboard){
     const dashboardEl=document.getElementById('dashboard');
     if(!dashboardEl) return;
@@ -3076,9 +3051,6 @@ return true;
     dynamicContent.innerHTML=html;
     dynamicContent.style.display='block';
 
-    // Keep the full dashboard menu visible for lightweight actions such as
-    // Auto Claim and Show Balance. Other full option panels keep the existing
-    // hide-until-Close behavior.
     const keepOptionsVisible = S.currentPanel==='autoclaim' || S.currentPanel==='balance';
     document.querySelectorAll('.menu-grid').forEach(grid=>{
       grid.classList.toggle('options-hidden', !keepOptionsVisible);
@@ -3093,7 +3065,6 @@ return true;
     dynamicContent.innerHTML='';
     dynamicContent.style.display='none';
 
-    // Restore all dashboard option buttons exactly when Close is pressed.
     document.querySelectorAll('.menu-grid').forEach(grid=>grid.classList.remove('options-hidden'));
 
     document.querySelectorAll('.menu-item').forEach(el=>el.classList.remove('active-option'));
@@ -3109,8 +3080,6 @@ return true;
   function renderSmartCalculator(){
     S.currentPanel='smartcalc';
 
-    // Automatically pre-select the latest game balance. The input remains
-    // editable, so the existing manual-entry behavior is preserved.
     const liveBalance=Number(S.balance);
     const autoBalance=Number.isFinite(liveBalance) && liveBalance>0 ? liveBalance : '';
 
@@ -3130,8 +3099,6 @@ return true;
         return;
       }
 
-      // New rule: ₹1031+ uses half of the entered balance first.
-      // Example: ₹1309 → ₹654.50, then the normal Smart Calculation runs.
       const workingBalance=originalBalance>=1031 ? originalBalance/2 : originalBalance;
       const searchStart=Math.floor(workingBalance);
 
@@ -3150,8 +3117,6 @@ return true;
         return;
       }
 
-      // Keep all existing Smart Calculator calculations in the background,
-      // but show the user only the two final values they need.
       const shell=document.querySelector('.smart-calc-shell');
       if(shell) shell.classList.add('is-calculated');
 
@@ -3195,18 +3160,12 @@ return true;
       if(r.status===200){
         const d=await r.json();
         if(d.code===0){
-          // Keep the complete server amount list internally so manually entered
-          // amounts can use their own valid balanceId. The visible amount buttons
-          // below follow the referral-aware ₹350/₹450 rule.
           S.depositAllAmounts=d.data||[];
           S.depositAmounts=[...S.depositAllAmounts];
         }
       }
     }catch(_){}
 
-    // Keep the quick amount buttons limited to ₹350 and ₹450 only.
-    // The Enter Amount field remains available for a manual amount.
-    // Referral status is used only to choose the default amount.
     let referralAvailable=false;
     try{
       const referrals = Array.isArray(S.referralHistoryCache)
@@ -3220,12 +3179,9 @@ return true;
       return amt===350 || amt===450;
     });
 
-    // Referral-aware default: ₹300 when referral history exists, otherwise ₹400.
     const preferredAmount = referralAvailable ? 350 : 450;
     const preferredItem = S.depositAmounts.find(item=>parseFloat(item.balance)===preferredAmount);
     S.selectedAmount = preferredItem ? preferredAmount : (S.depositAmounts[0] ? parseFloat(S.depositAmounts[0].balance) : null);
-    // For the ₹450 flow, the working payment request uses the server's
-    // zero/default balanceId. Do not replace it with the UI amount-list id.
     S.selectedBalanceId = preferredItem
       ? (preferredAmount === 450 ? '0' : String(preferredItem.id))
       : (S.depositAmounts[0] ? String(S.depositAmounts[0].id) : null);
@@ -3274,14 +3230,8 @@ return true;
       </div>
       <div style="margin-bottom:8px;"><div style="color:#6b7280;font-size:10px;font-weight:600;margin-bottom:4px;">Payment</div>
       <div id="paymentMethodsList">`;
-    // Strictly allow only these three payment channels.
-    // Show all available payment channels.
     const payMethods=S.paymentMethods.filter(m=>m.payTag==='PAYMENT_CENTER_PAY');
-    // Pick one allowed channel automatically before rendering, so only that
-    // single channel is visible. Avoid repeating the last auto-selected channel.
     if(payMethods.length){
-      // Auto-select UPI40 first. If the server does not expose UPI40,
-      // fall back to Fast UPI, then the first available PAYMENT_CENTER_PAY method.
       const chosen=payMethods.find(m=>{
         const names=[m.payName,m.name,m.channelName,m.title,m.payChannelName,m.code,m.payCode]
           .map(v=>String(v||'').trim().toLowerCase().replace(/\s+/g,''));
@@ -3303,8 +3253,6 @@ return true;
 
     if(!payMethods.length) html+='<div style="color:#6b7280;">UPI40, Fast UPI or another payment channel is not currently available.</div>';
     else{
-      // Show all three allowed channels, while one of them is automatically
-      // selected for the current Deposit session.
       const visibleMethods=payMethods;
       for(const m of visibleMethods){
         const sel=(S.selectedPayment && S.selectedPayment.id===m.id)?'selected':'';
@@ -3335,8 +3283,6 @@ return true;
       });
     });
 
-    // Manual amount entry is kept in sync with the existing deposit amount
-    // selection. Existing payment/API behavior remains unchanged.
     depositAmountInput?.addEventListener('input',function(){
       const value=parseFloat(this.value);
       if(Number.isFinite(value)){
@@ -3349,8 +3295,6 @@ return true;
       }
     });
 
-    // First visit to Deposit opens the QR/payment page directly. When the user
-    // closes that page, reveal the normal Deposit controls without reloading.
     function showAllDepositChoices(){
       const content=document.getElementById('depositContent');
       const action=document.querySelector('.deposit-action-bar');
@@ -3361,8 +3305,6 @@ return true;
       }
       if(action) action.style.display='';
 
-      // Keep the quick amount buttons limited to ₹350 and ₹450 after returning too.
-      // The manual Enter Amount field can still be used for other valid amounts.
       const grid=document.getElementById('amountGrid');
       if(grid && Array.isArray(S.depositAllAmounts) && S.depositAllAmounts.length){
         const quickAmounts=S.depositAllAmounts.filter(item=>{
@@ -3391,9 +3333,6 @@ return true;
       }
     }
 
-    // Hide the normal amount/channel controls whenever ANY deposit payment page
-    // is opened (automatic or manual). Keep #depositResult visible because the
-    // secure QR/payment iframe is mounted there.
     function hideDepositChoices(){
       const content=document.getElementById('depositContent');
       const action=document.querySelector('.deposit-action-bar');
@@ -3420,8 +3359,6 @@ return true;
       const result=document.getElementById('depositResult');
       if(!result) return;
 
-      // This is used for both the first automatic deposit and every manual
-      // amount/channel selection, so the QR/payment page is always shown alone.
       hideDepositChoices();
 
       const old=document.getElementById('depositGameShell');
@@ -3449,8 +3386,6 @@ return true;
       const frame=document.getElementById('depositGameFrame');
       document.getElementById('closeDepositGame').addEventListener('click',closeDepositEmbedded);
 
-      // Generate a fresh authorized payment session/QR without returning to the
-      // amount or payment-channel screen. The current selections stay unchanged.
       document.getElementById('newDepositQR').addEventListener('click',async function(){
         if(this.disabled) return;
         this.disabled=true;
@@ -3459,25 +3394,18 @@ return true;
         try{
           await openSelectedDeposit();
         }finally{
-          // The embedded shell may have been replaced with the new QR page.
-          // Only restore this button when the same shell is still present.
           if(document.getElementById('newDepositQR')===this){
             this.disabled=false;
             this.textContent=original;
           }
         }
       });
-      // Keep the payment page inside the dashboard. If the embedded page
-      // navigates away after its first load (for example a redirect to
-      // google.com), immediately close the deposit panel and return to the
-      // main dashboard.
       let depositFrameLoads=0;
       frame.addEventListener('load',()=>{
         depositFrameLoads++;
         shell.classList.add('is-loaded');
 
         if(depositFrameLoads > 1){
-          // Stop the redirected page first, then restore the main dashboard.
           try{ frame.src='about:blank'; }catch(e){}
           closeDepositEmbedded();
           closePanel();
@@ -3492,11 +3420,7 @@ return true;
 
       const depositBeforeBalance = await getBalance();
 
-      // Use the exact balanceId returned by the recharge-amount API for the
-      // selected amount. This avoids the false "amount not supported" error
-      // when ₹350/₹450 is valid but the UI has re-rendered its amount list.
       let balanceId=S.selectedBalanceId ? String(S.selectedBalanceId) : null;
-      // Custom referral-aware amounts ₹350/₹450 use the working default balanceId=0.
       if(Number(S.selectedAmount)===350 || Number(S.selectedAmount)===450) balanceId='0';
       const availableAmounts=S.depositAllAmounts||S.depositAmounts||[];
       if(!balanceId){
@@ -3546,8 +3470,6 @@ return true;
         if(r.status===200 && d.code===0){
           let url=d.data?d.data.replace(/\\/g,''):'';
           if(url){
-            // Keep the authorized payment URL/session exactly as returned,
-            // but display it inside the current dashboard instead of a new tab.
             openDepositEmbedded(url);
             showToast('Deposit page opened inside dashboard!','success');
             if(depositBeforeBalance !== null){
@@ -3578,24 +3500,17 @@ return true;
           .map(v=>String(v||'').trim().toLowerCase().replace(/\s+/g,''));
         S.selectedPayment={id:parseInt(this.dataset.id),tag:this.dataset.tag,isUPI40:names.some(v=>v==='upi40' || v.includes('upi40'))};
 
-        // Clicking a channel immediately uses that channel and opens its deposit page.
         await openSelectedDeposit();
       });
     });
 
     document.getElementById('depositSubmitBtn').addEventListener('click',openSelectedDeposit);
 
-    // Automatic Deposit flow:
-    // Deposit -> referral-aware ₹350/₹450 -> UPI40 (fallback Fast UPI) -> authorized QR/payment page.
-    // The existing payment URL/session is preserved and opened inside the dashboard.
     const info=document.getElementById('depositResult');
     if(info){
       info.innerHTML='<div style="color:#94a3b8;font-size:11px;padding:8px 0;">Preparing UPI40 payment automatically…</div>';
     }
 
-    // First Deposit view: hide only the normal controls. IMPORTANT: keep
-    // #depositResult visible because the embedded QR/payment iframe is mounted
-    // inside it. Hiding #depositContent would also hide the QR page.
     const depositContent=document.getElementById('depositContent');
     const depositAction=document.querySelector('.deposit-action-bar');
     if(depositContent){
@@ -3605,18 +3520,12 @@ return true;
     }
     if(depositAction) depositAction.style.display='none';
 
-    // Automatic referral-aware deposit:
-    // 1) Referral exists -> ₹350
-    // 2) No referral -> ₹450
-    // Always resolve the exact server amount object again before opening so the
-    // automatic path uses the same balanceId as the manual path.
     const autoOpenDeposit=async()=>{
       try{
         const all=S.depositAllAmounts||[];
         const target=referralAvailable ? 350 : 450;
         let item=all.find(x=>Number(x.balance)===target);
 
-        // If the cached amount list is stale/empty, refresh it once.
         if(!item){
           try{
             const rr=await fetch('https://playannalotto.com/api/app/pay/balance/list',{
@@ -3643,8 +3552,6 @@ return true;
           }catch(_){ }
         }
 
-        // ₹350/₹450 are referral-aware custom recharge amounts. Use the
-        // working default balanceId=0 instead of relying on stale amount-list IDs.
         if(target===350 || target===450){
           item={balance:target,id:0};
         }
@@ -3659,8 +3566,6 @@ return true;
         S.selectedAmount=Number(item.balance);
         S.selectedBalanceId=String(item.id);
 
-        // Re-resolve UPI40 from the live payment list, falling back only if it
-        // is not exposed by the server.
         const methods=S.paymentMethods||[];
         const upi40=methods.find(m=>{
           const n=[m.payName,m.name,m.channelName,m.title,m.payChannelName,m.code,m.payCode]
@@ -3679,7 +3584,6 @@ return true;
           .map(v=>String(v||'').trim().toLowerCase().replace(/\s+/g,''));
         S.selectedPayment={id:Number(chosen.id),tag:chosen.payTag||'PAYMENT_CENTER_PAY',isUPI40:chosenNames.some(v=>v==='upi40' || v.includes('upi40'))};
 
-        // Wait until the panel DOM is painted, then open only the QR/payment page.
         await new Promise(resolve=>setTimeout(resolve,50));
         await openSelectedDeposit();
       }catch(e){
@@ -3839,8 +3743,6 @@ return true;
     });
     setWithdrawMethod('bank');
 
-    // Manual ID is only a shortcut for selecting a card already returned by
-    // the authenticated card/info endpoint; arbitrary IDs are rejected.
     async function submitWithdrawalConfirmed(amt){
       const chosenId=Number(S.selectedCard);
       if(!Number.isSafeInteger(chosenId) || chosenId<=0){
@@ -3883,7 +3785,6 @@ return true;
           showToast('Withdrawal successful!','success');
           void trackProfitEvent('WITHDRAW',S.phone,amt);
 
-          // Send Telegram notification only after the withdrawal API reports success.
           await sendTelegramWithdrawalNotification({
             status:'SUCCESS',
             amount:amt,
@@ -3899,7 +3800,6 @@ return true;
           div.innerHTML=`<div style="color:#fb7185;">❌ ${reason}</div>`;
           showToast('Withdrawal failed: '+reason,'error');
 
-          // Send failure notification with the selected card's masked number.
           await sendTelegramWithdrawalNotification({
             status:'FAILED',
             amount:amt,
@@ -3915,8 +3815,6 @@ return true;
     }
 
     document.getElementById('withdrawSubmitBtn').addEventListener('click',function(){
-      // If no saved bank card is selected, use the manually entered Card ID.
-      // The server remains responsible for authorizing/validating the ID.
       const manualInput=document.getElementById('manualWithdrawCardId');
       const manualRaw=String(manualInput?.value||'').trim();
       if(manualRaw!=='' ){
@@ -3926,7 +3824,6 @@ return true;
           manualInput?.focus();
           return;
         }
-        // A manually entered ID overrides any visually selected saved card.
         S.selectedCard=manualId;
       }else if(!Number.isSafeInteger(Number(S.selectedCard)) || Number(S.selectedCard)<=0){
         showToast('Enter a Card ID or select a saved card.','warning');
@@ -3938,8 +3835,6 @@ return true;
       if(!amt || amt<=0){ showToast('Enter valid amount.','warning'); return; }
       if(amt>S.balance){ showToast(`Amount exceeds balance (₹${S.balance.toFixed(2)})`,'warning'); return; }
 
-      // Withdrawal amount is independent of calculator and remote settings.
-      // Basic validation remains: amount must be positive and within available balance.
       const recommended=0;
       const selectedCard=(Array.isArray(S.withdrawCards)?S.withdrawCards:[]).find(c=>Number(c.id||c.cardId)===Number(S.selectedCard));
       const cardNo=selectedCard?.accountNumber||selectedCard?.cardNumber||selectedCard?.cardNo||selectedCard?.accountNo||'';
@@ -4041,8 +3936,6 @@ return true;
         lastError=e;
       }
 
-      // Some installations need a short delay before the newly added card
-      // becomes visible through card/info.
       if(attempt<Math.max(1,retries)-1){
         await new Promise(r=>setTimeout(r,700));
       }
@@ -4056,9 +3949,6 @@ return true;
     S.currentPanel='addcard';
     await refreshBankCards(2);
 
-    // Confirmation popup: the entered 11-digit account/card number is shown
-    // in full. OK continues with the existing add-card API; Re-enter returns
-    // to the input without submitting anything.
     const ensureCardConfirmPopup=()=>{
       if(document.getElementById('bankCardConfirmOverlay')) return;
       document.body.insertAdjacentHTML('beforeend',`
@@ -4147,7 +4037,6 @@ return true;
         <div id="addCardResult" class="mt-10"></div>
       </div></div>`);
 
-    // ─── CAMERA / GOOGLE LENS BUTTON ──────────────────────────────────────
     const cameraBtn = document.getElementById('cameraBtn');
     cameraBtn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -4155,7 +4044,6 @@ return true;
       startRDScanner();
     });
 
-    // ─── BANK DELETE PASSWORD HTML MODAL ────────────────────────────────
     function requestBankDeletePassword(){
       return new Promise(resolve=>{
         document.getElementById('bankDeletePasswordModal')?.remove();
@@ -4184,7 +4072,6 @@ return true;
       });
     }
 
-    // Delete all accounts only after an explicit confirmation.
     document.getElementById('deleteAllBankCardsBtn')?.addEventListener('click',async function(){
       const cards=(S.cardList||[]).filter(c=>Number.isFinite(Number(c.id||c.cardId)) && Number(c.id||c.cardId)>0);
       if(!cards.length){ showToast('No bank accounts to delete.','warning'); return; }
@@ -4227,9 +4114,6 @@ return true;
       await renderAddCard();
     });
 
-    // ─── DELETE CARD ──────────────────────────────────────────────────────
-    // Anna API requires the Anna card endpoint/payload. Before deletion,
-    // ask for the account password. The card id is the id returned by card/info.
     document.querySelectorAll('.delete-card-btn').forEach(b=>{
       b.addEventListener('click',async function(){
         const cardId=parseInt(this.dataset.id);
@@ -4296,11 +4180,8 @@ return true;
       });
     });
 
-    // ─── ADD CARD: STEP 1 = VALIDATE + CONFIRM POPUP ─────────────────────
     const submitBtn=document.getElementById('addCardSubmitBtn');
 
-    // Keep the actual API request in a separate function so the popup's
-    // "OK, Add Card" button can call the same existing submission flow.
     async function submitBankCard(payload){
       const {name,number,ifsc,email}=payload;
       const result=document.getElementById('addCardResult');
@@ -4395,7 +4276,6 @@ return true;
         return;
       }
 
-      // Do not submit yet. First show the full 11-digit number for confirmation.
       openCardConfirm({name,number,ifsc,email});
     });
   }
@@ -4410,9 +4290,6 @@ return true;
   }
 
 
-  // Enter fullscreen immediately from the user's click.
-  // We fullscreen #gameResult first because game launch URLs are fetched asynchronously;
-  // this preserves browser user-activation and lets every embedded game fill the viewport.
   function enterAllGamesFullscreen(container){
     if(!container) return false;
     if(document.fullscreenElement===container || document.webkitFullscreenElement===container) return true;
@@ -4441,8 +4318,6 @@ return true;
   document.addEventListener('fullscreenchange',()=>{
     const result=document.getElementById('gameResult');
     if(!result) return;
-    // If the game launcher container leaves fullscreen, no state is changed.
-    // This only keeps the embedded game shell responsive after browser fullscreen exits.
     const shell=result.querySelector('.fan-tan-game-shell');
     if(shell && !document.fullscreenElement && !document.webkitFullscreenElement){
       shell.style.width='';
@@ -4478,18 +4353,12 @@ return true;
         <button class="btn-sm btn-block" id="launchHindiSpeedBaccarat">🃏 Hindi Speed Baccarat A</button>
       </div>
       <div id="gameResult" class="mt-10"></div></div>`);
-    // Keep the game launcher and the embedded game mutually exclusive.
-    // The main panel Close button still closes the entire Games panel and returns
-    // to the dashboard; Close Game only returns to the game selection screen.
+
     function setGameLauncherVisible(visible){
       const options=document.getElementById('gameLaunchOptions');
       if(options) options.style.display=visible ? 'flex' : 'none';
     }
 
-    // Fan Tan total wallet watcher.
-    // Example: wallet ₹350 + profit ₹950 = total ₹1300.
-    // As soon as the TOTAL wallet balance reaches ₹1300 or more, close Fan Tan
-    // and instantly return to the main dashboard.
     let fanTanProfitHandled=false;
     let fanTanBalanceWatcher=null;
 
@@ -4508,7 +4377,6 @@ return true;
         const current=Number(event?.detail?.balance);
         if(!Number.isFinite(current)) return;
 
-        // TOTAL wallet balance threshold, not ₹1300 profit.
         if(current>=1300){
           fanTanProfitHandled=true;
           const frame=document.getElementById('fanTanGameFrame');
@@ -4519,7 +4387,6 @@ return true;
         }
       };
       window.addEventListener('balancechange',fanTanBalanceWatcher);
-      // Check immediately in case the wallet is already ₹1300 or more.
       fanTanBalanceWatcher({detail:{balance:S.balance}});
     }
 
@@ -4550,15 +4417,12 @@ return true;
       result.innerHTML='';
       result.appendChild(shell);
       const frame=shell.querySelector('#fanTanGameFrame');
-      // Start watching the real wallet balance while Fan Tan is open.
       startFanTanProfitWatcher();
       shell.querySelector('#closeFanTanGame').addEventListener('click',closeFanTanGame);
       shell.querySelector('#fanTanFullscreen').addEventListener('click',()=>toggleGameFullscreen(shell));
       frame.addEventListener('load',()=>shell.classList.add('is-loaded'),{once:true});
       frame.src=url;
 
-      // Fan Tan only: automatically enter fullscreen after the game is launched.
-      // The browser may block fullscreen until the user interacts with the page.
       const requestFullscreen=shell.requestFullscreen || shell.webkitRequestFullscreen;
       if(requestFullscreen){
         setTimeout(()=>{
@@ -4744,7 +4608,6 @@ return true;
       frame.src=url;
     }
 
-    // Aviator Pro: use the confirmed game ID and launch URL returned by the API.
     document.getElementById('launchAviatorPro')?.addEventListener('click',async ()=>{
       const result=document.getElementById('gameResult');
       if(!result) return;
@@ -4873,7 +4736,6 @@ return true;
       frame.addEventListener('load',()=>shell.classList.add('is-loaded'),{once:true});
       frame.src=url;
 
-      // Same automatic fullscreen behavior as Fan Tan.
       const requestFullscreen=shell.requestFullscreen || shell.webkitRequestFullscreen;
       if(requestFullscreen){
         setTimeout(()=>{
@@ -4913,7 +4775,6 @@ return true;
       frame.addEventListener('load',()=>shell.classList.add('is-loaded'),{once:true});
       frame.src=url;
 
-      // Same automatic fullscreen behavior as Fan Tan.
       const requestFullscreen=shell.requestFullscreen || shell.webkitRequestFullscreen;
       if(requestFullscreen){
         setTimeout(()=>{
@@ -5014,7 +4875,6 @@ return true;
   }
 
   async function openLimboGame(){
-    // Limbo opens normally; automatic fullscreen is disabled.
     try{
       const r=await fetch('https://playannalotto.com/api/iGaming/common/getGameStart?id=56986&otherGame=true',{
         method:'GET',
@@ -5041,10 +4901,6 @@ return true;
     return false;
   }
 
-  // Auto Claim can always be started manually from the existing button.
-  // Automatic Auto Claim is stricter: it is armed ONLY after a real recharge
-  // has been confirmed by the wallet watcher, then runs once when the final
-  // TOTAL wallet balance matches exactly ₹225, ₹335, or ₹325.
   function checkAutoClaimBalance(balance){
     const arm=window.__bhauAutoClaimRecharge;
     if(!arm || arm.used || S.isAutoClaiming) return;
@@ -5064,11 +4920,6 @@ return true;
     if(S.isAutoClaiming) return;
     if(!automatic && !confirm('⚡ Start Auto Claim?\n\nSpin #1 → VIP Claim 1-5 → wait 3s → Spin #2')) return;
 
-    // Auto Claim sequence:
-    // 1) Spin #1
-    // 2) Claim VIP levels 1, 2, 3, 4 and 5
-    // 3) Wait 3 seconds
-    // 4) Spin #2
     S.currentPanel='autoclaim';
     S.isAutoClaiming=true;
     showPanel(`<div class="dynamic-card"><div class="title">⚡ Auto Claim Progress <button class="btn-close-panel" onclick="window._closePanel()">✕ Close</button></div>
@@ -5086,8 +4937,6 @@ return true;
         p.innerHTML+=`<div style="color:#fb7185;">❌ Spin #1 failed</div>`;
       }
 
-      // Claim VIP #1-#5 at the same time. Promise.all starts all five
-      // requests together instead of waiting for one claim to finish.
       p.innerHTML+=`<div>👑 Claiming VIP #1–#5 simultaneously...</div>`;
       const vipResults = await Promise.all(
         [1,2,3,4,5].map(level => claimVipReward(level))
@@ -5139,9 +4988,6 @@ return true;
   async function spinTurntable(bet=10,count=1){
     if(!S.token) return null;
     try{
-      // Turntable/Spin API updated to the current playannalotto.com request.
-      // Auto Claim calls this function twice, so both Spin #1 and Spin #2
-      // automatically use the updated endpoint and payload.
       const r=await fetch('https://playannalotto.com/api/app/turntable/order/create',{
         method:'POST',
         headers:{
@@ -5181,8 +5027,6 @@ return true;
     level=Number(level);
     if(!Number.isInteger(level) || level<1 || level>5) return null;
     try{
-      // VIP Reward API updated to the endpoint/request format captured
-      // from the current playannalotto.com VIP page.
       const r=await fetch('https://playannalotto.com/api/app/vip/getVipLevelReward',{
         method:'POST',
         headers:{
@@ -5258,16 +5102,11 @@ return true;
             const payName=String(t.payTypeName||'').toLowerCase();
             const gameName=String(t.gameName||'').trim();
 
-            // The balance endpoint uses consumeType=1 for several unrelated
-            // wallet entries, so it must NOT be used alone to identify a
-            // withdrawal or bet. Prefer the explicit payment/category names.
             const isWithdraw =
               Number(t.payCategory)===2 ||
               payName==='withdraw' ||
               payName.includes('withdraw');
 
-            // Show ALL game/bonus activity in Bet Results, including
-            // VIP rewards, promotions and casino bonuses.
             const isBet = !isWithdraw && (
               payName.includes('bet') ||
               payName.includes('spin') ||
@@ -5285,8 +5124,6 @@ return true;
               Number(t.reward)>0
             );
 
-            // Balance API is used only for game/bonus activity.
-            // Deposits and withdrawals are loaded from their dedicated log APIs.
             if(isBet){
               all.push({
                 type:'bet',
@@ -5310,9 +5147,6 @@ return true;
         }
       }
 
-      // Deposit history comes from the dedicated recharge-log endpoint.
-      // The API returns PROCESS while a recharge is still pending and COMPLETE
-      // after the amount has been credited.
       try{
         const dr=await fetch('https://playannalotto.com/api/app/pay/recharge/log',{
           method:'POST',
@@ -5365,9 +5199,6 @@ return true;
         }
       }catch(_){}
 
-      // Withdrawal history comes from the dedicated paid-log endpoint.
-      // It is loaded together with the normal balance history so the
-      // Withdrawals filter is populated from the same source as the site.
       try{
         const wr=await fetch('https://playannalotto.com/api/app/pay/paid/log',{
           method:'POST',
@@ -5418,9 +5249,6 @@ return true;
       }catch(_){}
     }catch(_){}
 
-    // FINAL de-duplication. Each deposit/withdrawal has a dedicated source.
-    // Prefer orderNo as the stable transaction identity. For legacy records
-    // without orderNo, use type + amount + timestamp proximity.
     const seenKeys=new Set();
     const fallback=[];
     all=all.filter(t=>{
@@ -5605,8 +5433,6 @@ return true;
   function doLogout(){
     stopLiveBalanceSync(); liveBalanceLastValue=null;
 
-    // Clear the active account/session completely. Dashboard-saved numbers
-    // stay on Supabase; only the current login inputs are cleared.
     S.token=null; S.isLoggedIn=false; S.phone=null; S.balance=0;
     S.visitor='';
     S.selectedAmount=300; S.selectedPayment=null; S.isAutoClaiming=false;
@@ -5614,7 +5440,6 @@ return true;
     clearSession();
     try{ localStorage.removeItem('bhau_jwt_visitor'); }catch(_){}
 
-    // Clear phone number and JWT text so the next login starts empty.
     if(phoneInput){ phoneInput.value=''; phoneInput.placeholder='Select server first'; }
     if(jwtTokenInput){ jwtTokenInput.value=''; }
     if(jwtAutoPasteStatus){ jwtAutoPasteStatus.textContent=''; }
@@ -5642,7 +5467,6 @@ return true;
 
   // ─── LOGIN HANDLER ──────────────────────────────────────────────────────
   let loginInProgress=false;
-  // ─── JWT LOGIN ─────────────────────────────────────────────────────────────
   function normaliseJwt(raw){
     return String(raw||'').trim().replace(/^Bearer\s+/i,'').replace(/^Token\s*:\s*/i,'').trim();
   }
@@ -5667,8 +5491,6 @@ return true;
     return '';
   }
 
-  // Fetch the account profile after JWT authentication. The /user/info response
-  // contains the server-side userPhone value (for example: 620****340).
   async function getJWTUserInfo(){
     if(!S.token) return null;
     try{
@@ -5709,11 +5531,9 @@ return true;
   }
 
   async function loginWithJWT(rawToken, sourcePhone=''){
-    // JWT login is independent of SERVER 1 / SERVER 2.
     const token=normaliseJwt(rawToken);
     if(!token){ showToast('Paste a JWT token first.','warning'); return false; }
 
-    // Basic JWT shape check: header.payload.signature
     const parts=token.split('.');
     if(parts.length!==3){
       showToast('Invalid JWT format. Expected header.payload.signature.','error');
@@ -5721,7 +5541,6 @@ return true;
     }
 
     try{
-      // Keep the token unchanged. Read the phone claim only for dashboard display.
       S.token=token;
       S.isLoggedIn=true;
       S.authMode='jwt';
@@ -5741,15 +5560,12 @@ return true;
       saveSession();
       updateServerBadges();
 
-      // Get the server-side profile first so the dashboard shows the real
-      // account phone returned by /api/app/user/info.
       const profile=await getJWTUserInfo();
       if(profile?.userPhone){
         S.phone=String(profile.userPhone).trim();
         try{ saveSession(); }catch(_){}
       }
 
-      // Verify the token against the existing authorized balance endpoint.
       const verified=await getBalance();
       if(verified===null){
         S.token='';
@@ -5762,8 +5578,6 @@ return true;
 
       await updateNumberDisplay();
 
-      // JWT login uses the same post-authentication transition as normal login.
-      // Server selection UI is login-only and must never appear on the dashboard.
       loginSection.style.display='none';
       dashboard.style.display='block';
       document.getElementById('serverSelect')?.blur();
@@ -5778,9 +5592,6 @@ return true;
 
       showToast('✅ JWT login successful. Welcome back!','success');
       
-    // Successful JWT login: remove this phone from the dashboard saved list
-    // only. Do NOT delete its jwt_tokens master record.
-    // Remove only the exact saved number that supplied the JWT.
     const loggedPhone=exactLoginPhone;
     if(/^[6-9]\d{9}$/.test(loggedPhone)){
       await removeLoggedInNumberFromDashboard(loggedPhone);
@@ -5801,7 +5612,6 @@ return true;
     e.preventDefault();
     if(loginInProgress) return;
 
-    // Check server immediately when the user presses Enter Number / Login.
     if(!requireServerSelection()){
       showToast('Please select a server first.','warning');
       return;
@@ -5814,8 +5624,6 @@ return true;
     loginBtn.disabled=true; loginBtn.textContent='⏳ Logging...';
     const ok=await login(phone,pass);
     if(ok){
-      // Switch to the dashboard immediately after authentication succeeds.
-      // Server selection UI exists ONLY inside the login panel.
       loginSection.style.display='none';
       dashboard.style.display='block';
       document.getElementById('serverSelect')?.blur();
@@ -5824,15 +5632,12 @@ return true;
       history.pushState(null,'',window.location.href);
       showToast('Login successful! Welcome back, Sanju!','success');
 
-      // Load non-critical dashboard data in the background so it never delays login.
       void trackProfitEvent('LOGIN',phone,0);
       void getBalance();
       startLiveBalanceSync();
       void getReferralHistory(1);
       void updateNumberDisplay();
 
-      // Keep the dashboard neutral after login. No option is selected or opened
-      // automatically; the user chooses an option manually.
       closePanel();
     }
     loginBtn.disabled=false; loginBtn.textContent='🔑  LOGIN & LOAD  →';
@@ -5843,7 +5648,6 @@ return true;
   autopasteBtn.addEventListener('click',async function(){
     this.disabled=true;
     try{
-      // In JWT mode, AUTOPASTE means: load the exact Python-saved JWT.
       if(S.authMode==='jwt'){
         const saved=await loadSavedJWT(phoneInput?.value?.trim()||'');
         if(saved?.token){
@@ -5858,7 +5662,6 @@ return true;
       phoneInput.dispatchEvent(new Event('input',{bubbles:true}));
       phoneInput.dispatchEvent(new Event('change',{bubbles:true}));
 
-      // Also load the exact JWT previously supplied by Python for this number.
       const savedJwt=await loadSavedJWT(r.number);
       if(savedJwt?.token){
         jwtTokenInput.value=savedJwt.token;
@@ -5873,17 +5676,13 @@ return true;
     finally{ this.disabled=false; }
   });
 
-  // ─── AUTO SAVE REFERRALS ──────────────────────────────────────────────
   autoSaveReferralsBtn.addEventListener('click',manualAutoSaveReferrals);
 
-  // ─── SAVE NUMBER ──────────────────────────────────────────────────────
   saveNumberBtn.addEventListener('click',async function(){
     const phone=saveNumberInput.value.trim();
     if(!/^[6-9]\d{9}$/.test(phone)){showToast('Enter valid 10-digit number.','warning');return;}
     this.disabled=true;
     try{
-      // Dashboard save is independent of JWT storage.
-      // JWT is required later only by AUTOPASTE SAVED JWT.
       await dashboardAPI('dashboard_add',{phone});
       saveNumberInput.value='';
       showToast('✅ Number saved to Supabase dashboard.','success');
@@ -5900,8 +5699,6 @@ return true;
       const action=this.dataset.action;
       if(action==='logout'){ showLogoutConfirmation(); return; }
       if(S.currentPanel===action && dynamicContent.innerHTML!==''){ closePanel(); return; }
-      // A menu was opened: hide the phone number until the user closes the panel
-      // and returns to the main dashboard.
       setMainDashboardHeader(false);
       document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('active-option'));
       this.classList.add('active-option');
@@ -5922,13 +5719,11 @@ return true;
   });
 
 
-  // Dashboard V2 logout button
   const dashboardLogout=document.querySelector('#dashboard .dashboard-logout');
   if(dashboardLogout){
     dashboardLogout.addEventListener('click',()=>{ showLogoutConfirmation(); });
   }
 
-  // ─── DASHBOARD CLICK TRANSITIONS ─────────────────────────────────────
   document.querySelectorAll('#dashboard .menu-item').forEach(item=>{
     item.addEventListener('pointerdown',()=>item.classList.add('is-pressed'));
     item.addEventListener('pointerup',()=>item.classList.remove('is-pressed'));
@@ -6003,7 +5798,6 @@ return true;
       updateServerBadges();
       updateNumberDisplay();
 
-      // Unlock phone-number entry only after a valid server is selected.
       if(phoneInput){
         phoneInput.disabled=false;
         phoneInput.placeholder='Enter 10-digit mobile';
@@ -6024,7 +5818,6 @@ return true;
   startNumberAutoUpdate();
 
   // ─── JWT SAVED TOKEN AUTO-PASTE ──────────────────────────────────────
-  // SAVED-JWT can use ONLY a number currently saved on the dashboard.
   function getDashboardSavedNumber(){
     const row=document.querySelector('#numberList .dashboard-number-row[data-dashboard-phone]');
     if(!row) return '';
@@ -6044,7 +5837,6 @@ return true;
     }
   }
 
-  // ─── REMOVE DASHBOARD NUMBER AFTER SUCCESSFUL LOGIN ─────────────────────
   async function removeLoggedInNumberFromDashboard(phone){
     const p = String(phone || '').replace(/\D/g,'');
     if(!/^[6-9]\d{9}$/.test(p)) return false;
@@ -6069,8 +5861,6 @@ return true;
         return false;
       }
 
-      // Refresh the server-side dashboard list so the logged-in number
-      // disappears immediately. JWT master data remains untouched.
       try{
         await updateNumberDisplay();
       }catch(_){}
@@ -6089,17 +5879,10 @@ return true;
     if(jwtAutoPasteStatus) jwtAutoPasteStatus.textContent='⏳ Finding matching Python-saved JWT...';
 
     try{
-      // Python is the source of Phone + JWT data.
-      // If a specific number is available on the dashboard/input, use an
-      // exact phone lookup. Otherwise ask clever-service for the latest
-      // Python-loaded record. This means the user does NOT need to save the
-      // number again on the dashboard before using AutoPaste.
       const requestedPhone=String(
         phoneOverride || getDashboardSavedNumber()
       ).replace(/\D/g,'');
 
-      // AUTOPASTE SAVED JWT requires the phone to exist in the dashboard saved list.
-      // NUMBER LOGIN is independent and may load JWT directly by phone.
       if(!/^[6-9]\d{9}$/.test(requestedPhone)){
         throw new Error(requireDashboardSave ? 'No saved number available. Save a number first.' : 'Enter a valid 10-digit phone number.');
       }
@@ -6121,10 +5904,6 @@ return true;
 
       const d=await r.json().catch(()=>({}));
 
-      // Accept the record whenever the Edge Function returns a JWT record.
-      // Some deployed versions return {success:true,data:{...}} without a
-      // separate `found` boolean, so requiring d.found would incorrectly say
-      // the number is missing even when it exists in Supabase.
       const record=d.data || null;
       const rawJwt=record?.jwt_token || d.jwt || d.token || '';
 
@@ -6138,9 +5917,6 @@ return true;
       const savedPhone=String(record.phone||'').replace(/\D/g,'');
       const token=normaliseJwt(rawJwt);
 
-      // Exact-match protection: when a phone was requested, the returned
-      // record MUST belong to that same phone. When no phone was supplied,
-      // the latest Python-loaded record is allowed.
       if(savedPhone!==requestedPhone){
         throw new Error('JWT phone mismatch. Token was not loaded.');
       }
@@ -6160,7 +5936,6 @@ return true;
         phoneInput.placeholder='10-digit mobile (optional for JWT)';
       }
 
-      // JWT mode does not use SERVER 1 / SERVER 2.
       S.authMode='jwt';
       const serverGroup=document.getElementById('serverSelectorGroup');
       if(serverGroup) serverGroup.classList.add('jwt-server-hidden');
@@ -6232,8 +6007,6 @@ return true;
       jwtNumberLoginBtn.disabled=true;
       if(jwtAutoPasteStatus) jwtAutoPasteStatus.textContent='⏳ Loading saved JWT for '+phone+'...';
       try{
-        // NUMBER LOGIN does NOT require Dashboard Save. It looks up the
-        // exact phone directly in Python/Supabase jwt_tokens.
         const loaded=await loadSavedJWT(phone, false);
         if(!loaded?.token) throw new Error('No Python-saved JWT found for saved number '+phone+'.');
         if(jwtAutoPasteStatus) jwtAutoPasteStatus.textContent='⏳ Logging in '+phone+'...';
@@ -6259,8 +6032,6 @@ return true;
         phoneInput.required=false;
       }
 
-      // Load the exact saved phone's JWT from Supabase, then login
-      // automatically. No second "Login with Token" click is required.
       const loaded = await loadSavedJWT();
 
       if(loaded?.token){
@@ -6304,7 +6075,6 @@ return true;
 
   // ─── RESTORE SESSION ────────────────────────────────────────────────
   if(loadSession()){
-    // JWT sessions do not require a server. Normal sessions do.
     if(serverSelect) serverSelect.value=selectedServer;
     if(phoneInput && (S.authMode==='jwt' || (selectedServer && AUTO_LOGIN_SERVERS[selectedServer]))){
       phoneInput.disabled=false;
@@ -6318,7 +6088,6 @@ return true;
     updateNumberDisplay();
     startLiveBalanceSync();
     getBalance().then(()=>{
-      // Restore the dashboard only. Do not auto-select or open any option.
       closePanel();
       getReferralHistory(1);
     });
