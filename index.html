@@ -2265,8 +2265,6 @@ select:focus{
   };
 
   // ─── DEVICE CODE (required by login API) ───────────────────────────────────
-  // Server rejects login when deviceCode is empty. Format observed in the
-  // working request: 'h' + 32 hex chars. Persisted so re-logins are stable.
   function getDeviceCode(){
     try{
       let dc = localStorage.getItem('anna_device_code');
@@ -2831,11 +2829,11 @@ select:focus{
   // ─── LOGIN ────────────────────────────────────────────────────────────────
   async function login(phone,password){
     const visitor=Math.random().toString(16).substring(2,34);
-    const deviceCode=getDeviceCode();   // ← REQUIRED: valid device code
+    const deviceCode=getDeviceCode();
     const payload={
       channel:'h5',
       channelId:'anna',
-      deviceCode:deviceCode,            // ← was '' before; now valid
+      deviceCode:deviceCode,
       lang:'en_US',
       packageId:1,
       packageInfo:'com.lottepro.sambadpro',
@@ -2854,7 +2852,7 @@ select:focus{
           'Content-Type':'application/json',
           'Origin':'https://playannalotto.com',
           'Referer':'https://playannalotto.com/login?back=1',
-          'devicecode':deviceCode,      // ← also send as header (as the app does)
+          'devicecode':deviceCode,
           'Packageid':'1'
         },
         body:JSON.stringify(payload)
@@ -4027,11 +4025,11 @@ return true;
         <div class="input-group">
           <label>💳 Account Number</label>
           <div class="input-row">
-            <input id="cardNumberInput" placeholder="Enter 14-digit account number" inputmode="numeric" autocomplete="off" maxlength="11">
+            <input id="cardNumberInput" placeholder="Enter 11 to 14 digit account number" inputmode="numeric" autocomplete="off" maxlength="14">
             <button class="btn-camera" id="cameraBtn" title="Scan RD account number">📷</button>
           </div>
         </div>
-        <div class="input-group"><label>🏛️ IFSC</label><input id="ifscInput" value="0002009"></div>
+        <div class="input-group"><label>🏛️ IFSC</label><input id="ifscInput" value="MAHB0002009"></div>
         <div class="input-group"><label>📧 Email</label><input id="cardEmailInput" value="${randEmail(autoName)}"></div>
         <button class="btn-sm btn-card-add btn-block" id="addCardSubmitBtn">➕ Add Card</button>
         <div id="addCardResult" class="mt-10"></div>
@@ -4244,7 +4242,7 @@ return true;
             document.getElementById('cardNameInput').value=newName;
             document.getElementById('cardEmailInput').value=randEmail(newName);
             document.getElementById('cardNumberInput').value='';
-            document.getElementById('ifscInput').value='BDBL0001091';
+            document.getElementById('ifscInput').value='MAHB0002009';
 
             setTimeout(()=>renderAddCard(),800);
           }else{
@@ -4270,8 +4268,8 @@ return true;
         showToast('Please fill account holder and IFSC.','warning');
         return;
       }
-      if(!/^\d{14}$/.test(number)){
-        showToast('Card / account number must be exactly 14 digits.','error');
+      if(!/^\d{11,14}$/.test(number)){
+        showToast('Card / account number must be exactly 11 to 14 digits.','error');
         document.getElementById('cardNumberInput')?.focus();
         return;
       }
