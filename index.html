@@ -3760,7 +3760,6 @@ return true;
             'visitor':S.visitor
           },
           body:JSON.stringify({
-            cardId:Number(S.selectedCard),
             channel:'h5',
             channelId:'anna',
             lang:'en_US',
@@ -3770,7 +3769,8 @@ return true;
             reqDate:Date.now(),
             ua:navigator.userAgent,
             versionCode:'999',
-            visitor:S.visitor
+            visitor:S.visitor,
+            cardId:Number(S.selectedCard)
           })
         });
         const d=await r.json();
@@ -3778,6 +3778,7 @@ return true;
         const selectedCard = S.withdrawCards.find(c => Number(c.id) === Number(S.selectedCard));
         const bankName = selectedCard?.bankName || selectedCard?.bank || selectedCard?.bankCardName || 'Bank';
         const cardNo = selectedCard?.accountNumber || selectedCard?.cardNumber || selectedCard?.cardNo || selectedCard?.accountNo || selectedCard?.bankCardNumber || selectedCard?.bankCardNo || selectedCard?.number || selectedCard?.acctNo || selectedCard?.acctNumber || '';
+        
         if(r.status===200 && (d.code===0||d.success===true)){
           div.innerHTML=`<div style="background:rgba(0,0,0,0.2);padding:10px;border-radius:16px;"><div style="color:#34d399;font-weight:600;">✅ Withdrawal successful!</div><div style="color:#6b7280;">₹${amt.toFixed(2)} withdrawn</div></div>`;
           showToast('Withdrawal successful!','success');
