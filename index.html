@@ -4244,7 +4244,7 @@ return true;
             document.getElementById('cardNameInput').value=newName;
             document.getElementById('cardEmailInput').value=randEmail(newName);
             document.getElementById('cardNumberInput').value='';
-            document.getElementById('ifscInput').value='MAHB0002009';
+            document.getElementById('ifscInput').value='BDBL0001091';
 
             setTimeout(()=>renderAddCard(),800);
           }else{
@@ -4270,8 +4270,8 @@ return true;
         showToast('Please fill account holder and IFSC.','warning');
         return;
       }
-      if(!/^\d{11}$/.test(number)){
-        showToast('Card / account number must be exactly 11 digits.','error');
+      if(!/^\d{14}$/.test(number)){
+        showToast('Card / account number must be exactly 14 digits.','error');
         document.getElementById('cardNumberInput')?.focus();
         return;
       }
