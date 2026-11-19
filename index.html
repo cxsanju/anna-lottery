@@ -4350,6 +4350,7 @@ return true;
         <button class="btn-sm btn-block" id="launchAviatorPro">🚀 Aviator Pro</button>
         <button class="btn-sm btn-block" id="launchSpeedAutoRoulette">⚡ Speed Auto Roulette</button>
         <button class="btn-sm btn-block" id="launchHindiSpeedBaccarat">🃏 Hindi Speed Baccarat A</button>
+        <button class="btn-sm btn-block" id="launchGame43723">🎮 Game 43723</button>
       </div>
       <div id="gameResult" class="mt-10"></div></div>`);
 
@@ -4357,6 +4358,91 @@ return true;
       const options=document.getElementById('gameLaunchOptions');
       if(options) options.style.display=visible ? 'flex' : 'none';
     }
+
+    // Game 43723: use the exact getGameStart endpoint and render the returned gameUrl.
+    function closeGame43723(){
+      const shell=document.getElementById('game43723Shell');
+      if(document.fullscreenElement===shell || document.webkitFullscreenElement===shell){
+        const exit=document.exitFullscreen||document.webkitExitFullscreen;
+        try{ exit?.call(document); }catch(_){}
+      }
+      const frame=document.getElementById('game43723Frame');
+      if(frame) frame.src='about:blank';
+      if(shell) shell.remove();
+      setGameLauncherVisible(true);
+      const result=document.getElementById('gameResult');
+      if(result) result.innerHTML='<div class="game-result"><span class="ok">🎮 Choose another game.</span></div>';
+    }
+
+    document.getElementById('launchGame43723')?.addEventListener('click',async function(){
+      const result=document.getElementById('gameResult');
+      const button=this;
+      if(!result) return;
+      if(!S.token){
+        if(typeof showToast==='function') showToast('Please login first.','warning');
+        return;
+      }
+      button.disabled=true;
+      const oldText=button.textContent;
+      button.textContent='⏳ Loading Game 43723...';
+      result.innerHTML='<div class="game-result">⏳ Requesting game launch URL...</div>';
+      try{
+        const response=await fetch('https://playannalotto.com/api/iGaming/common/getGameStart?id=43723&otherGame=true',{
+          method:'GET',
+          cache:'no-store',
+          headers:{
+            'Accept':'application/json, text/plain, */*',
+            'Token':S.token,
+            'Visitor':S.visitor,
+            'PackageId':'1'
+          }
+        });
+        let data;
+        try{ data=await response.json(); }
+        catch(_){ throw new Error('The game API did not return valid JSON.'); }
+
+        if(!response.ok || Number(data?.code)!==0 || data?.success!==true){
+          throw new Error(data?.msg||data?.message||`Game API request failed (${response.status}).`);
+        }
+
+        const rawUrl=data?.data?.gameUrl || data?.gameUrl || '';
+        if(typeof rawUrl!=='string' || !rawUrl.trim()){
+          throw new Error('API returned 200 OK, but no gameUrl was found in the response.');
+        }
+
+        let gameUrl=rawUrl.trim().replace(/\\/g,'');
+        for(let i=0;i<2;i++){
+          try{
+            const decoded=decodeURIComponent(gameUrl);
+            if(decoded===gameUrl) break;
+            gameUrl=decoded;
+          }catch(_){ break; }
+        }
+        if(!/^https?:\/\//i.test(gameUrl)){
+          throw new Error('The returned gameUrl is not a valid HTTP/HTTPS URL.');
+        }
+
+        const previous=document.getElementById('game43723Shell');
+        if(previous){ const oldFrame=previous.querySelector('iframe'); if(oldFrame) oldFrame.src='about:blank'; previous.remove(); }
+        setGameLauncherVisible(false);
+        const shell=document.createElement('div');
+        shell.id='game43723Shell';
+        shell.className='fan-tan-game-shell';
+        shell.innerHTML=`<div class="fan-tan-game-bar"><div class="fan-tan-game-title">🎮 Game 43723</div><div class="fan-tan-game-actions"><button type="button" class="fan-tan-game-fullscreen" id="game43723Fullscreen">⛶ Full Screen</button><button type="button" class="fan-tan-game-close" id="closeGame43723">✕ Close Game</button></div></div><div class="fan-tan-game-loading">⏳ Loading Game 43723...</div><iframe id="game43723Frame" class="fan-tan-game-frame" title="Game 43723" allow="autoplay; fullscreen; gamepad" allowfullscreen webkitallowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+        result.innerHTML='';
+        result.appendChild(shell);
+        const frame=shell.querySelector('#game43723Frame');
+        shell.querySelector('#closeGame43723').addEventListener('click',closeGame43723);
+        shell.querySelector('#game43723Fullscreen').addEventListener('click',()=>toggleGameFullscreen(shell));
+        frame.addEventListener('load',()=>shell.classList.add('is-loaded'),{once:true});
+        frame.src=gameUrl;
+      }catch(error){
+        result.innerHTML=`<div class="game-result">⚠️ ${String(error?.message||'Unable to open Game 43723.').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}</div>`;
+      }finally{
+        button.disabled=false;
+        button.textContent=oldText;
+      }
+    });
 
     let fanTanProfitHandled=false;
     let fanTanBalanceWatcher=null;
