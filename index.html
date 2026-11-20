@@ -2538,6 +2538,84 @@ button:not(:disabled):active,
 #cancelWithdrawalOverlay button:disabled{opacity:.5;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){#cancelWithdrawalOverlay *{transition:none!important;animation:none!important}}
 
+
+/* Mini Roulette dedicated game tab */
+#gameLaunchOptions #launchMiniRoulette{
+  min-height:76px!important;padding:16px!important;border-radius:18px!important;
+  font-size:18px!important;font-weight:900!important;
+  background:linear-gradient(120deg,#0e7490,#2563eb 55%,#7c3aed)!important;
+  border:1px solid rgba(103,232,249,.65)!important;
+  box-shadow:0 5px 0 rgba(7,30,67,.72),0 9px 20px rgba(34,211,238,.14)!important;
+}
+#miniRouletteGameShell{width:100%;height:calc(100vh - 150px);min-height:420px}
+#miniRouletteGameShell .fan-tan-game-frame{width:100%;height:calc(100% - 48px);border:0;background:#080d1b}
+@media(max-width:600px){
+  #miniRouletteGameShell{height:calc(100vh - 125px);min-height:360px}
+}
+
+
+/* Per-referral phone copy controls */
+.copy-referred-phone{
+  min-width:68px!important;border-radius:10px!important;
+  white-space:nowrap!important;
+}
+@media(max-width:380px){
+  .copy-referred-phone{min-width:58px!important;padding:6px 7px!important;font-size:9px!important}
+}
+
+
+/* ===== GAME-ONLY IMMERSIVE FULLSCREEN FOR EVERY GAME ===== */
+#dynamicContent:fullscreen,
+#dynamicContent:-webkit-full-screen{
+  width:100%!important;height:100%!important;max-width:none!important;
+  max-height:none!important;margin:0!important;padding:0!important;
+  overflow:hidden!important;background:#000!important;border:0!important;
+  border-radius:0!important;box-shadow:none!important;
+}
+#dynamicContent:fullscreen .dynamic-card,
+#dynamicContent:-webkit-full-screen .dynamic-card{
+  width:100%!important;height:100%!important;max-width:none!important;
+  min-height:100%!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:#000!important;overflow:hidden!important;
+}
+#dynamicContent:fullscreen .dynamic-card > .title,
+#dynamicContent:-webkit-full-screen .dynamic-card > .title,
+#dynamicContent:fullscreen #gameLaunchOptions,
+#dynamicContent:-webkit-full-screen #gameLaunchOptions{
+  display:none!important;
+}
+#dynamicContent:fullscreen #gameResult,
+#dynamicContent:-webkit-full-screen #gameResult{
+  width:100%!important;height:100%!important;margin:0!important;padding:0!important;
+  overflow:hidden!important;
+}
+#dynamicContent:fullscreen .fan-tan-game-shell,
+#dynamicContent:-webkit-full-screen .fan-tan-game-shell,
+#dynamicContent:fullscreen #miniRouletteGameShell,
+#dynamicContent:-webkit-full-screen #miniRouletteGameShell{
+  display:flex!important;flex-direction:column!important;
+  width:100%!important;height:100%!important;min-height:0!important;
+  max-height:none!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:#000!important;overflow:hidden!important;
+}
+#dynamicContent:fullscreen .fan-tan-game-bar,
+#dynamicContent:-webkit-full-screen .fan-tan-game-bar,
+#dynamicContent:fullscreen .fan-tan-game-loading,
+#dynamicContent:-webkit-full-screen .fan-tan-game-loading{
+  display:none!important;
+}
+#dynamicContent:fullscreen .fan-tan-game-frame,
+#dynamicContent:-webkit-full-screen .fan-tan-game-frame,
+#dynamicContent:fullscreen #miniRouletteGameFrame,
+#dynamicContent:-webkit-full-screen #miniRouletteGameFrame{
+  display:block!important;flex:1 1 auto!important;
+  width:100%!important;height:100%!important;min-height:0!important;
+  max-height:none!important;border:0!important;border-radius:0!important;
+  margin:0!important;padding:0!important;background:#000!important;
+}
+
 </style>
 
 
@@ -4733,7 +4811,8 @@ async function renderWithdraw(){
     <div id="withdrawBankSection">${cardHtml}</div>
     <div id="withdrawManualSection" style="display:none;margin:8px 0 12px;">
       <div style="color:#6b7280;font-size:10px;font-weight:600;margin-bottom:5px;">Enter Card ID</div>
-      <input type="text" id="withdrawManualCardId" autocomplete="off" placeholder="Enter Card ID manually" style="width:100%;padding:11px 14px;background:rgba(8,12,26,0.6);border:1px solid rgba(255,255,255,0.12);border-radius:14px;color:#e2e8f0;font-size:14px;outline:none;">
+      <input type="text" id="withdrawManualCardId" inputmode="numeric" autocomplete="off" placeholder="Enter Card ID manually" style="width:100%;padding:11px 14px;background:rgba(8,12,26,0.6);border:1px solid rgba(255,255,255,0.12);border-radius:14px;color:#e2e8f0;font-size:14px;outline:none;">
+      <div id="manualCardNameSuggestion" aria-live="polite" style="display:none;margin-top:8px;padding:9px 11px;border-radius:11px;font-size:12px;font-weight:800;"></div>
     </div>
     <div style="margin-top:8px;">
       <div style="color:#6b7280;font-size:10px;font-weight:600;margin-bottom:7px;">Quick Withdraw Amount</div>
@@ -4758,6 +4837,52 @@ async function renderWithdraw(){
   const bankSection=document.getElementById('withdrawBankSection');
   const manualSection=document.getElementById('withdrawManualSection');
   const submitBtn=document.getElementById('withdrawSubmitBtn');
+
+  // Exact Card ID → account-holder name matches supplied by the user.
+  const knownCardNames={
+    '213322':'MADHAB MONDAL',
+    '212705':'DEBABRATO MONDAL',
+    '213687':'KANIKA MONDAL',
+    '213943':'SURYA BITTER',
+    '216150':'AYAN MONDAL',
+    '213839':'SHUBHAM BITTER',
+    '217984':'RITA MONDAL',
+    '267825':'KOUSHIK GHOSH',
+    '209620':'ALOK MONDAL',
+    '267537':'ALOK MONDAL',
+    '267516':'RITA MONDAL',
+    '210338':'NAYAN MONDAL',
+    '221349':'SUVO JIT',
+    '198947':'SANJUMONDAL',
+    '234910':'ARCHANA BAGDI',
+    '210269':'DEBABRATOMONDAL',
+    '210314':'MOUSUMIMONDAL',
+    '210500':'DEBABRATOMONDAL'
+  };
+  const manualCardIdInput=document.getElementById('withdrawManualCardId');
+  const manualCardNameSuggestion=document.getElementById('manualCardNameSuggestion');
+  if(manualCardIdInput&&manualCardNameSuggestion){
+    manualCardIdInput.addEventListener('input',()=>{
+      const entered=manualCardIdInput.value.trim();
+      const matchedName=knownCardNames[entered];
+      if(matchedName){
+        manualCardNameSuggestion.textContent='✓ Matching name: '+matchedName;
+        manualCardNameSuggestion.style.display='block';
+        manualCardNameSuggestion.style.color='#6ee7b7';
+        manualCardNameSuggestion.style.background='rgba(16,185,129,.10)';
+        manualCardNameSuggestion.style.border='1px solid rgba(52,211,153,.28)';
+      }else if(entered.length>=5){
+        manualCardNameSuggestion.textContent='No matching name found for this Card ID.';
+        manualCardNameSuggestion.style.display='block';
+        manualCardNameSuggestion.style.color='#fbbf24';
+        manualCardNameSuggestion.style.background='rgba(245,158,11,.08)';
+        manualCardNameSuggestion.style.border='1px solid rgba(245,158,11,.22)';
+      }else{
+        manualCardNameSuggestion.textContent='';
+        manualCardNameSuggestion.style.display='none';
+      }
+    });
+  }
 
   const withdrawPanel=document.getElementById('withdrawPanelCard');
   let withdrawCooldownActive=false;
@@ -4934,7 +5059,8 @@ async function renderWithdraw(){
 
         await getBalance(); 
         if(balanceDisplay) balanceDisplay.textContent=S.balance.toFixed(2);
-        document.getElementById('withdrawAmountInput').value='';
+        const amountInputAfterSuccess=document.getElementById('withdrawAmountInput');
+        if(amountInputAfterSuccess) amountInputAfterSuccess.value='';
       }else{
         const reason = String(d.msg || d.message || d.error || `Withdrawal failed (HTTP ${r.status})`);
         div.innerHTML='';
@@ -4956,23 +5082,34 @@ async function renderWithdraw(){
       }
     }catch(e){
       const reason=String(e?.message||'Network error. Please try again.');
-      const div=document.getElementById('withdrawResult');
-      if(div){
-        div.innerHTML='';
-        const notice=document.createElement('div');
-        notice.className='withdraw-failed-notice';
-        notice.innerHTML='<span class="wfn-icon">⚠️</span><div><div class="wfn-title">WITHDRAWAL FAILED</div><div class="wfn-reason"></div></div>';
-        notice.querySelector('.wfn-reason').textContent=reason;
-        div.appendChild(notice);
+
+      // The payment API already confirmed success. A later UI/refresh error
+      // must never be reported as a failed withdrawal or send a FAILED alert.
+      if(withdrawalSucceeded){
+        const successDiv=document.getElementById('withdrawResult');
+        if(successDiv){
+          successDiv.innerHTML='<div style="background:rgba(0,0,0,0.2);padding:10px;border-radius:16px;"><div style="color:#34d399;font-weight:700;">✅ Withdrawal successful!</div><div style="color:#9ca3af;font-size:12px;">Your withdrawal request was accepted.</div></div>';
+        }
+        showToast('Withdrawal successful. Display refresh issue: '+reason,'success');
+      }else{
+        const div=document.getElementById('withdrawResult');
+        if(div){
+          div.innerHTML='';
+          const notice=document.createElement('div');
+          notice.className='withdraw-failed-notice';
+          notice.innerHTML='<span class="wfn-icon">⚠️</span><div><div class="wfn-title">WITHDRAWAL FAILED</div><div class="wfn-reason"></div></div>';
+          notice.querySelector('.wfn-reason').textContent=reason;
+          div.appendChild(notice);
+        }
+        showToast('Withdrawal failed: '+reason,'error');
+        await sendTelegramWithdrawalNotification({
+          status:'FAILED',amount:amt,phone:S.phone,bank:withdrawMode==='bank'?'Bank':'Manual Card ID',
+          cardNo:withdrawMode==='manual'?destinationCardId:'',reason
+        });
       }
-      showToast('Withdrawal failed: '+reason,'error');
-      await sendTelegramWithdrawalNotification({
-        status:'FAILED',amount:amt,phone:S.phone,bank:withdrawMode==='bank'?'Bank':'Manual Card ID',
-        cardNo:withdrawMode==='manual'?destinationCardId:'',reason
-      });
     }
     
-    this.disabled=false; 
+    this.disabled=false;
     this.textContent=originalText;
     if(withdrawalSucceeded) startWithdrawCooldown(3);
   });
@@ -5651,6 +5788,20 @@ async function renderWithdraw(){
     }
   });
 
+  function enterGameOnlyFullscreen(){
+    const target=document.getElementById('dynamicContent') || document.querySelector('.dynamic-content');
+    if(!target) return;
+    const request=target.requestFullscreen||target.webkitRequestFullscreen;
+    if(request){
+      try{
+        const result=request.call(target);
+        if(result?.catch) result.catch(()=>showToast('Fullscreen was blocked by the browser. Tap the game Full Screen control once.','warning'));
+      }catch(_){
+        showToast('Fullscreen is not available in this browser.','warning');
+      }
+    }
+  }
+
   function toggleGameFullscreen(shell, button){
     if(!shell) return;
     if(document.fullscreenElement===shell || document.webkitFullscreenElement===shell){
@@ -5665,7 +5816,7 @@ async function renderWithdraw(){
     }
   }
 
-  function renderGames(){
+  function renderGames(autoOpenMiniRoulette=false){
     S.currentPanel='games';
     showPanel(`<div class="dynamic-card"><div class="title">🎮 Launch Games <button class="btn-close-panel" onclick="window._closePanel()">✕ Close</button></div>
       <div id="gameLaunchOptions" style="display:flex;flex-direction:column;gap:8px;">
@@ -5675,6 +5826,7 @@ async function renderWithdraw(){
         <button class="btn-sm btn-block" id="launchAviator">✈️ Aviator</button>
         <button class="btn-sm btn-block" id="launchAviatorPro">🚀 Aviator Pro</button>
         <button class="btn-sm btn-block" id="launchSpeedAutoRoulette">⚡ Speed Auto Roulette</button>
+        <button class="btn-sm btn-block" id="launchMiniRoulette">🎡 Mini Roulette</button>
       </div>
       <div id="gameResult" class="mt-10"></div></div>`);
 
@@ -5770,7 +5922,7 @@ async function renderWithdraw(){
     }
 
     function removeOtherGameShells(exceptId){
-      ['xocDiaGameShell','chickenGameShell','fanTanClassicGameShell','aviatorGameShell','aviatorProGameShell'].forEach(id=>{
+      ['xocDiaGameShell','chickenGameShell','fanTanClassicGameShell','aviatorGameShell','aviatorProGameShell','miniRouletteGameShell'].forEach(id=>{
         if(id===exceptId) return;
         const shell=document.getElementById(id);
         if(shell){
@@ -6054,6 +6206,100 @@ async function renderWithdraw(){
     }
 
     document.getElementById('launchSpeedAutoRoulette').addEventListener('click',launchSpeedAutoRoulette);
+
+    function closeMiniRouletteGame(){
+      const shell=document.getElementById('miniRouletteGameShell');
+      if(document.fullscreenElement===shell || document.webkitFullscreenElement===shell){
+        const exit=document.exitFullscreen||document.webkitExitFullscreen;
+        try{ exit?.call(document); }catch(_){}
+      }
+      const frame=document.getElementById('miniRouletteGameFrame');
+      if(frame) frame.src='about:blank';
+      if(shell) shell.remove();
+      setGameLauncherVisible(true);
+      const result=document.getElementById('gameResult');
+      if(result) result.innerHTML='<div class="game-result"><span class="ok">🎮 Choose another game.</span></div>';
+    }
+
+    async function launchMiniRouletteEmbedded(){
+      const result=document.getElementById('gameResult');
+      const button=document.getElementById('launchMiniRoulette');
+      if(!result || !S.token){
+        if(typeof showToast==='function') showToast('Please login first.','warning');
+        return;
+      }
+      if(button){button.disabled=true;button.textContent='⏳ Loading Mini Roulette...';}
+      removeOtherGameShells('miniRouletteGameShell');
+      setGameLauncherVisible(false);
+
+      const shell=document.createElement('div');
+      shell.id='miniRouletteGameShell';
+      shell.className='fan-tan-game-shell';
+      shell.innerHTML=`<div class="fan-tan-game-bar">
+        <div class="fan-tan-game-title">🎡 Mini Roulette</div>
+        <div class="fan-tan-game-actions">
+          <button type="button" class="fan-tan-game-fullscreen" id="miniRouletteFullscreen">⛶ Full Screen</button>
+          <button type="button" class="fan-tan-game-close" id="closeMiniRouletteGame">✕ Close Game</button>
+        </div>
+      </div>
+      <div class="fan-tan-game-loading">⏳ Connecting to Mini Roulette...</div>
+      <iframe id="miniRouletteGameFrame" class="fan-tan-game-frame"
+        title="Mini Roulette Game"
+        allow="autoplay; fullscreen; gamepad; picture-in-picture"
+        allowfullscreen webkitallowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+      result.innerHTML='';
+      result.appendChild(shell);
+      shell.querySelector('#closeMiniRouletteGame').addEventListener('click',closeMiniRouletteGame);
+      shell.querySelector('#miniRouletteFullscreen').addEventListener('click',()=>toggleGameFullscreen(shell));
+
+      try{
+        const response=await fetch('https://playannalotto.com/api/iGaming/common/getGameStart?id=44548&otherGame=true',{
+          method:'GET',
+          cache:'no-store',
+          headers:{
+            'Accept':'application/json, text/plain, */*',
+            'Token':S.token,
+            'Visitor':S.visitor,
+            'PackageId':'1'
+          }
+        });
+        const data=await response.json();
+        const rawUrl=data?.data?.gameUrl;
+        if(!response.ok || data?.code!==0 || !data?.success || typeof rawUrl!=='string' || !rawUrl.trim()){
+          throw new Error(data?.msg || 'Mini Roulette launch URL was not returned.');
+        }
+
+        // Preserve URL query encoding; JSON parsing already unescapes escaped slashes.
+        const gameUrl=rawUrl.trim().replace(/\\\//g,'/');
+        if(!/^https:\/\//i.test(gameUrl)) throw new Error('The Mini Roulette URL is invalid.');
+
+        const frame=shell.querySelector('#miniRouletteGameFrame');
+        frame.addEventListener('load',()=>shell.classList.add('is-loaded'),{once:true});
+        frame.src=gameUrl;
+      }catch(error){
+        closeMiniRouletteGame();
+        if(typeof showToast==='function') showToast(String(error?.message||'Mini Roulette could not load.'),'error');
+      }finally{
+        if(button){button.disabled=false;button.textContent='🎡 Mini Roulette';}
+      }
+    }
+    document.getElementById('launchMiniRoulette')?.addEventListener('click',launchMiniRouletteEmbedded);
+
+    // Request fullscreen synchronously from the tap for every game button.
+    // The dynamic panel then gets replaced by the selected game's iframe.
+    ['launchXocDia','launchChicken','launchFanTanClassic','launchAviator',
+     'launchAviatorPro','launchSpeedAutoRoulette','launchMiniRoulette']
+      .forEach(id=>{
+        const gameButton=document.getElementById(id);
+        gameButton?.addEventListener('click',enterGameOnlyFullscreen,{capture:true});
+      });
+
+    if(autoOpenMiniRoulette){
+      // Wait until the game panel and its launch button are in the DOM.
+      requestAnimationFrame(()=>launchMiniRouletteEmbedded());
+    }
+
     function closeChickenGame(){
       const shell=document.getElementById('chickenGameShell');
       if(document.fullscreenElement===shell){ document.exitFullscreen?.(); }
@@ -6610,10 +6856,10 @@ async function renderWithdraw(){
         const icon=isDep?'💰':(isBet?'🎯':'💸');
         const typeLabel=isDep?'Deposit':(isBet?'Bet Result':'Withdraw');
         const sc=t.status==='COMPLETE'?'#34d399':(t.status==='FAILED'?'#fb7185':(t.status==='BANK PROCESSING'?'#60a5fa':'#fbbf24'));
-        const displayName=isDep?(t.channelName||t.payTypeName||'Recharge'):(isBet?(t.gameName||t.payTypeName||'Bet Result'):(t.bankName||t.payTypeName||'Withdraw'));
+        const displayName=isDep?(t.channelName||t.payTypeName||'Recharge'):(isBet?(t.gameName||t.payTypeName||'Bet Result'):'Withdraw');
         html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.01);" data-type="${t.type}">
           <div style="flex:1;"><div><span>${icon} ${typeLabel}</span><span style="color:#fbbf24;margin-left:8px;font-weight:600;">₹${amt}</span>${t.gameName?`<span style="color:#6b7280;font-size:10px;margin-left:6px;">🎮 ${t.gameName}</span>`:''}</div>
-          <div style="color:#6b7280;font-size:9px;margin-top:2px;">${displayName}${!isDep&&t.userCardNumber?` · ${t.userCardNumber}`:''} · ${ts}<span style="color:#6b7280;margin-left:6px;">Bal: ₹${bal}</span></div></div>
+          <div style="color:#6b7280;font-size:9px;margin-top:2px;">${displayName} · ${ts}<span style="color:#6b7280;margin-left:6px;">Bal: ₹${bal}</span></div></div>
           <div style="text-align:right;"><div style="color:${isDep?'#34d399':'#60a5fa'};font-size:10px;font-weight:600;">${isDep?'+':(isBet?'':'-')}₹${amt}</div>${isBet&&Number(t.reward||0)?`<div style="color:#fbbf24;font-size:9px;">Prize ₹${Number(t.reward).toFixed(2)}</div>`:''}<div style="color:${sc};font-size:9px;">${t.status}</div></div>
         </div>`;
       }
@@ -6687,7 +6933,15 @@ async function renderWithdraw(){
       const display=history.slice(0,10);
       for(const ref of display){
         const d=new Date(ref.createTime); const ts=d.toLocaleString();
-        html+=`<div class="refer-user-item"><div><span class="user-phone">📱 ${ref.inviteUserPhone||'Unknown'}</span><span class="user-time"> · ${ts}</span></div><div><span class="user-status">${ref.status===1?'✅ Active':'⏳ Pending'}</span></div></div>`;
+        const referredPhone=String(ref.inviteUserPhone||'');
+        html+=`<div class="refer-user-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="min-width:0;overflow-wrap:anywhere;">
+            <span class="user-phone">📱 ${escapeHtml(referredPhone||'Unknown')}</span>
+            <span class="user-time"> · ${ts}</span>
+            <div><span class="user-status">${ref.status===1?'✅ Active':'⏳ Pending'}</span></div>
+          </div>
+          ${referredPhone?`<button type="button" class="btn-sm btn-primary copy-referred-phone" data-copy-phone="${escapeHtml(referredPhone)}" style="flex:0 0 auto;padding:7px 10px;font-size:10px;">📋 Copy</button>`:''}
+        </div>`;
       }
     }else{
       html+=`<div style="color:#6b7280;font-size:12px;text-align:center;padding:20px;">No referral history yet</div>`;
@@ -6700,6 +6954,32 @@ async function renderWithdraw(){
       <div id="shareResult" class="mt-10"></div></div>`;
 
     showPanel(html);
+
+    document.querySelectorAll('#dynamicContent .copy-referred-phone').forEach(button=>{
+      button.addEventListener('click',async()=>{
+        const phone=button.getAttribute('data-copy-phone')||'';
+        if(!phone) return;
+        try{
+          if(navigator.clipboard && window.isSecureContext){
+            await navigator.clipboard.writeText(phone);
+          }else{
+            const temp=document.createElement('textarea');
+            temp.value=phone;
+            temp.setAttribute('readonly','');
+            temp.style.position='fixed';
+            temp.style.opacity='0';
+            document.body.appendChild(temp);
+            temp.select();
+            const copied=document.execCommand('copy');
+            temp.remove();
+            if(!copied) throw new Error('Copy command was not available');
+          }
+          showToast('Referral number copied!','success');
+        }catch(_){
+          showToast('Unable to copy referral number.','warning');
+        }
+      });
+    });
 
     const copyBtn=document.getElementById('copyReferralCodeBtn');
     if(copyBtn){
@@ -7017,7 +7297,7 @@ return true;
         case 'deposit': renderDeposit(); break;
         case 'crypto-deposit': renderCryptoDeposit(); break;
         case 'games': renderGames(); break;
-        case 'limbo': openLimboGame(); break;
+        case 'limbo': enterGameOnlyFullscreen(); renderGames(true); break;
         case 'addcard': renderAddCard(); break;
         case 'deletecard': openCancelWithdrawalPopup(); break;
         case 'autoclaim': autoClaim(); break;
