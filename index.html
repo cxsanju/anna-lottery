@@ -6856,10 +6856,10 @@ async function renderWithdraw(){
         const icon=isDep?'💰':(isBet?'🎯':'💸');
         const typeLabel=isDep?'Deposit':(isBet?'Bet Result':'Withdraw');
         const sc=t.status==='COMPLETE'?'#34d399':(t.status==='FAILED'?'#fb7185':(t.status==='BANK PROCESSING'?'#60a5fa':'#fbbf24'));
-        const displayName=isDep?(t.channelName||t.payTypeName||'Recharge'):(isBet?(t.gameName||t.payTypeName||'Bet Result'):'Withdraw');
+        const displayName=isDep?(t.channelName||t.payTypeName||'Recharge'):(isBet?(t.gameName||t.payTypeName||'Bet Result'):(t.bankName||t.payTypeName||'Withdraw'));
         html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.01);" data-type="${t.type}">
           <div style="flex:1;"><div><span>${icon} ${typeLabel}</span><span style="color:#fbbf24;margin-left:8px;font-weight:600;">₹${amt}</span>${t.gameName?`<span style="color:#6b7280;font-size:10px;margin-left:6px;">🎮 ${t.gameName}</span>`:''}</div>
-          <div style="color:#6b7280;font-size:9px;margin-top:2px;">${displayName} · ${ts}<span style="color:#6b7280;margin-left:6px;">Bal: ₹${bal}</span></div></div>
+          <div style="color:#6b7280;font-size:9px;margin-top:2px;">${displayName}${!isDep&&t.userCardNumber?` · ${t.userCardNumber}`:''} · ${ts}<span style="color:#6b7280;margin-left:6px;">Bal: ₹${bal}</span></div></div>
           <div style="text-align:right;"><div style="color:${isDep?'#34d399':'#60a5fa'};font-size:10px;font-weight:600;">${isDep?'+':(isBet?'':'-')}₹${amt}</div>${isBet&&Number(t.reward||0)?`<div style="color:#fbbf24;font-size:9px;">Prize ₹${Number(t.reward).toFixed(2)}</div>`:''}<div style="color:${sc};font-size:9px;">${t.status}</div></div>
         </div>`;
       }
